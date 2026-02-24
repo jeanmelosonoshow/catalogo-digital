@@ -48,21 +48,26 @@
 </div>
 
 <script>
-    const isMobile = window.innerWidth <= 768;
-    
-    // 1. DEFINA AS PROPORÇÕES AQUI
-    // Desktop: 1280x720 (Horizontal) | Mobile: 720x1280 (Vertical)
-    const dimensions = isMobile ? { w: 720, h: 1280 } : { w: 1280, h: 720 };
+const isMobile = window.innerWidth <= 768;
 
-    const pageFlip = new St.PageFlip(document.getElementById("book"), {
-        width: dimensions.w,
-        height: dimensions.h,
-        size: "stretch",
-        mode: "portrait",
-        usePortrait: true,
-        showCover: false,
-        mobileScrollSupport: true
-    });
+// Ajustamos as dimensões base para garantir que o mobile use a tela vertical
+const dimensions = isMobile 
+    ? { w: window.innerWidth, h: window.innerHeight * 0.8 } 
+    : { w: 1280, h: 720 };
+
+const pageFlip = new St.PageFlip(document.getElementById("book"), {
+    width: dimensions.w,
+    height: dimensions.h,
+    size: "stretch", // Crucial para expandir
+    mode: "portrait",
+    usePortrait: true,
+    showCover: false,
+    mobileScrollSupport: true,
+    minWidth: isMobile ? 200 : 320,
+    minHeight: isMobile ? 300 : 180,
+    maxWidth: 2000,
+    maxHeight: 2000
+});
 
     // 2. LÓGICA DE CARREGAMENTO DE PASTA
     // Se for mobile, ele busca na pasta 'pages/mobile/'
