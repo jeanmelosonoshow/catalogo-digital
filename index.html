@@ -1,69 +1,125 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Livro Digital</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo Digital</title>
 
-<script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
+    <script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
 
-<style>
-body {
-    margin: 0;
-    background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    font-family: Arial;
-}
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
 
-#book {
-    width: 1000px;
-    height: 650px;
-}
+        #book-wrapper {
+            position: relative;
+            width: 95vw;
+            height: 85vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.page {
-    background: white;
-}
+        #book {
+            box-shadow: 0 0 50px rgba(0,0,0,0.7);
+        }
 
-.page img {
-    width: 100%;
-    height: 100%;
-}
-</style>
+        .page img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            display: block;
+        }
+
+        /* Estilização dos Botões */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 20px 15px;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 100;
+            transition: 0.3s;
+            border-radius: 8px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #fff;
+        }
+
+        #prev-btn { left: 10px; }
+        #next-btn { right: 10px; }
+
+    </style>
 </head>
 <body>
 
-<div id="book"></div>
+<div id="book-wrapper">
+    <button id="prev-btn" class="nav-btn">&#10094;</button>
+    
+    <div id="book"></div>
+    
+    <button id="next-btn" class="nav-btn">&#10095;</button>
+</div>
 
 <script>
+    const pageFlip = new St.PageFlip(
+        document.getElementById("book"),
+        {
+            width: 1280, // Proporção da sua imagem
+            height: 720, 
 
-const pageFlip = new St.PageFlip(
-    document.getElementById("book"),
-    {
-        width: 500,
-        height: 650,
-        size: "stretch",
-        minWidth: 300,
-        maxWidth: 1000,
-        minHeight: 400,
-        maxHeight: 1200,
-        showCover: true,
-        maxShadowOpacity: 0.5,
-        mobileScrollSupport: false
+            size: "stretch",
+            minWidth: 320,
+            maxWidth: 2000,
+            minHeight: 180,
+            maxHeight: 1200,
+
+            // AQUI ESTÁ O SEGREDO PARA PÁGINA ÚNICA
+            mode: "portrait",           // Força o modo 'retrato' (uma folha)
+            usePortrait: true,          // Trava para não mudar para 'double' em telas largas
+            showCover: false,           // Remove o comportamento de espelhamento da capa
+            
+            clickEventForward: true,
+            maxShadowOpacity: 0.5,
+            mobileScrollSupport: true
+        }
+    );
+
+    const totalPages = 6; 
+    let images = [];
+    for (let i = 1; i <= totalPages; i++) {
+        images.push(`pages/page_${i}.jpg`);
     }
-);
 
-// GERADOR AUTOMÁTICO DE PÁGINAS
-const totalPages = 6; // <<< ALTERE PARA O TOTAL REAL
+    pageFlip.loadFromImages(images);
 
-let images = [];
-for (let i = 1; i <= totalPages; i++) {
-    images.push(`pages/page_${i}.jpg`);
-}
+    // Lógica dos Botões
+    document.getElementById('prev-btn').addEventListener('click', () => {
+        pageFlip.flipPrev();
+    });
 
-pageFlip.loadFromImages(images);
+    document.getElementById('next-btn').addEventListener('click', () => {
+        pageFlip.flipNext();
+    });
 
+    window.addEventListener('resize', () => {
+        pageFlip.update();
+    });
 </script>
 
 </body>
