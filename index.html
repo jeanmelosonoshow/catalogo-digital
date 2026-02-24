@@ -7,52 +7,28 @@
     <script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
 
     <style>
-        body {
-            margin: 0; padding: 0; background: #121212;
-            display: flex; flex-direction: column; justify-content: center;
-            align-items: center; min-height: 100vh; overflow: hidden;
-            font-family: sans-serif;
-        }
-
-        #book-wrapper {
-            position: relative;
-            width: 100vw;
-            height: 80vh;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        /* Botões laterais para Desktop */
-        .nav-btn {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            background: rgba(255,255,255,0.1); color: white; border: none;
-            padding: 20px; cursor: pointer; z-index: 100; border-radius: 50%;
-        }
-        #prev-btn { left: 20px; }
-        #next-btn { right: 20px; }
-
-        /* Ajustes Mobile */
-        @media (max-width: 768px) {
-            .nav-btn { top: auto; bottom: -60px; transform: none; padding: 15px 30px; border-radius: 8px; }
-            #prev-btn { left: 15%; }
-            #next-btn { right: 15%; }
-            #book-wrapper { height: 75vh; }
-        }
-
-        @media (max-width: 768px) {
+/* Ajustes Mobile */
+@media (max-width: 768px) {
     #book-wrapper {
-        height: 85vh; /* Aumentamos o espaço vertical */
+        height: 90vh; /* Aumenta o espaço para o catálogo */
         width: 100vw;
-        padding: 0;
     }
-    
+
     #book {
-        width: 100% !important;
-        height: 100% !important;
+        /* Remove sombras pesadas que podem "comer" pixels na tela pequena */
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
 
     .nav-btn {
-        bottom: -50px; /* Garante que os botões não fiquem em cima da imagem */
+        top: auto;
+        bottom: 20px; /* Botões flutuando na parte de baixo */
+        padding: 12px 25px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50px; /* Botão mais arredondado para mobile */
     }
+    
+    #prev-btn { left: 10%; }
+    #next-btn { right: 10%; }
 }
     </style>
 </head>
@@ -67,48 +43,47 @@
 <script>
 const isMobile = window.innerWidth <= 768;
 
-// Ajustamos as dimensões base para garantir que o mobile use a tela vertical
-const dimensions = isMobile 
-    ? { w: window.innerWidth, h: window.innerHeight * 0.8 } 
-    : { w: 1280, h: 720 };
+// Forçamos o cálculo baseado na tela real do usuário
+const screenW = window.innerWidth;
+const screenH = window.innerHeight;
 
 const pageFlip = new St.PageFlip(document.getElementById("book"), {
-    width: dimensions.w,
-    height: dimensions.h,
-    size: "stretch", // Crucial para expandir
+    // No mobile, usamos a largura total do dispositivo
+    width: isMobile ? screenW : 1280,
+    height: isMobile ? (screenW * (16/9)) : 720, 
+
+    size: "stretch", 
     mode: "portrait",
     usePortrait: true,
     showCover: false,
     mobileScrollSupport: true,
-    minWidth: isMobile ? 200 : 320,
-    minHeight: isMobile ? 300 : 180,
+    
+    // Trava para não deixar o catálogo encolher demais
+    minWidth: isMobile ? screenW : 320,
+    minHeight: isMobile ? 450 : 180,
     maxWidth: 2000,
-    maxHeight: 2000
+    maxHeight: 2500
 });
 
-    // 2. LÓGICA DE CARREGAMENTO DE PASTA
-    // Se for mobile, ele busca na pasta 'pages/mobile/'
-    // Se for desktop, busca na pasta 'pages/'
-    const totalPages = 6;
-    const folder = isMobile ? 'pages/mobile/' : 'pages/';
-    let images = [];
-    
-    for (let i = 1; i <= totalPages; i++) {
-        images.push(`${folder}page_${i}.jpg`);
+const totalPages = 6;
+const folder = isMobile ? 'pages/mobile/' : 'pages/';
+let images = [];
+
+for (let i = 1; i <= totalPages; i++) {
+    images.push(`${folder}page_${i}.jpg`);
+}
+
+pageFlip.loadFromImages(images);
+
+// Botões
+document.getElementById('prev-btn').onclick = () => pageFlip.flipPrev();
+document.getElementById('next-btn').onclick = () => pageFlip.flipNext();
+
+window.addEventListener('resize', () => {
+    if ((window.innerWidth <= 768) !== isMobile) {
+        location.reload();
     }
-
-    pageFlip.loadFromImages(images);
-
-    // Navegação
-    document.getElementById('prev-btn').onclick = () => pageFlip.flipPrev();
-    document.getElementById('next-btn').onclick = () => pageFlip.flipNext();
-
-    window.addEventListener('resize', () => {
-        // Recarrega a página se mudar de orientação para trocar as imagens
-        if ((window.innerWidth <= 768) !== isMobile) {
-            location.reload();
-        }
-    });
+});    
 </script>
 </body>
 </html>
