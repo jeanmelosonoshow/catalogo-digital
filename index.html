@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Catálogo Profissional - Estofados</title>
+    <title>Catálogo Estofados - Zoom Refinado</title>
     
     <script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
 
@@ -16,64 +16,70 @@
         }
 
         #book-container {
+            position: relative; width: 100vw; height: 85vh;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .page { background-color: #121212; width: 100%; height: 100%; }
+        .page img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+
+        /* Overlay do Zoom (Modal) */
+        #zoom-modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.9);
+            z-index: 1000; justify-content: center; align-items: center;
+            overflow: auto; /* Permite scroll no zoom */
+        }
+
+        #zoom-wrapper {
             position: relative;
-            width: 100vw;
-            height: 85vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            transition: transform 0.2s ease-out;
+            cursor: grab;
         }
 
-        /* Estilo das páginas */
-        .page {
-            background-color: #121212;
-            width: 100%;
-            height: 100%;
+        #zoom-img {
+            max-width: none;
+            height: 90vh; /* Base para o início do zoom */
         }
 
-        .page img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            pointer-events: none; /* Permite que o arrasto passe pela imagem para o livro */
+        /* Botão Fechar */
+        #close-zoom {
+            position: fixed; top: 20px; right: 20px;
+            width: 45px; height: 45px; background: #fff;
+            border-radius: 50%; display: flex; justify-content: center;
+            align-items: center; font-size: 24px; font-weight: bold;
+            color: #000; cursor: pointer; z-index: 1100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        /* Contador no Rodapé */
         #controls {
-            margin-top: 10px;
-            color: white;
+            margin-top: 10px; color: white;
             background: rgba(255, 255, 255, 0.1);
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 20px; border-radius: 20px;
+            font-size: 14px; border: 1px solid rgba(255,255,255,0.2);
         }
+        
+        .hint { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 5px; }
 
-        /* Botões laterais invisíveis para toque facilitado */
-        .nav-area {
-            position: absolute; top: 0; height: 100%; width: 15%; z-index: 10; cursor: pointer;
-        }
-        .left-area { left: 0; }
-        .right-area { right: 0; }
-
-        @media (max-width: 768px) {
-            #book-container { height: 80vh; }
-        }
+        @media (max-width: 768px) { #book-container { height: 80vh; } }
     </style>
 </head>
 <body>
 
 <div id="book-container">
-    <div class="nav-area left-area" onclick="book.flipPrev()"></div>
-    
-    <div id="book">
-        </div>
-
-    <div class="nav-area right-area" onclick="book.flipNext()"></div>
+    <div id="book"></div>
 </div>
 
 <div id="controls">
     Página: <span id="current-page">1</span> / 6
+</div>
+<div class="hint">Role o mouse para Zoom • Clique e arraste para folhear</div>
+
+<div id="zoom-modal">
+    <div id="close-zoom" onclick="closeZoom()">×</div>
+    <div id="zoom-wrapper">
+        <img id="zoom-img" src="" alt="Zoom">
+    </div>
 </div>
 
 <script>
@@ -82,51 +88,71 @@
     const totalPages = 6;
     const folder = isMobile ? 'pages/mobile/' : 'pages/';
 
-    // 1. Criar as páginas no HTML
+    // 1. Criar as páginas
     const bookElement = document.getElementById('book');
     for (let i = 1; i <= totalPages; i++) {
         const pageDiv = document.createElement('div');
         pageDiv.className = 'page';
-        pageDiv.innerHTML = `<img src="${folder}page_${i}.jpg" alt="Página ${i}">`;
+        pageDiv.innerHTML = `<img src="${folder}page_${i}.jpg">`;
         bookElement.appendChild(pageDiv);
     }
 
-    // 2. Configurar o PageFlip
+    // 2. Inicializar PageFlip
     window.onload = () => {
-        // Dimensões baseadas no dispositivo
         const w = isMobile ? window.innerWidth : 600;
         const h = isMobile ? window.innerHeight * 0.75 : 800;
 
         book = new St.PageFlip(bookElement, {
-            width: w,
-            height: h,
+            width: w, height: h,
             size: "stretch",
-            minWidth: 315,
-            maxWidth: 1000,
-            minHeight: 420,
-            maxHeight: 1350,
-            
-            drawShadow: true,
             showCover: false,
-            usePortrait: true, // EXIBE APENAS UMA PÁGINA
-            startPage: 0,
-            autoSize: true,
-            mobileScrollSupport: true, // Habilita o arrasto no toque
-            clickEventForward: false,
-            useMouseEvents: true // Habilita o arrasto no rato
+            usePortrait: true,
+            drawShadow: true,
+            mobileScrollSupport: true,
+            useMouseEvents: true
         });
 
         book.loadFromHTML(document.querySelectorAll(".page"));
 
-        // Atualizar contador
         book.on('flip', (e) => {
             document.getElementById('current-page').innerText = e.data + 1;
         });
     };
 
-    // Suporte a Zoom Nativo: 
-    // Como você gerou imagens em alta resolução, o utilizador pode fazer o gesto de "pinça" 
-    // no telemóvel para ler os textos de 190cm do Sofá Croácia.
+    // 3. Lógica de Zoom por Scroll (Desktop)
+    let currentScale = 1;
+    const modal = document.getElementById('zoom-modal');
+    const zoomWrapper = document.getElementById('zoom-wrapper');
+    const zoomImg = document.getElementById('zoom-img');
+
+    // Captura scroll no container do livro para ativar zoom
+    document.getElementById('book-container').addEventListener('wheel', (e) => {
+        if (e.deltaY < 0) { // Scroll para cima = Zoom In
+            openZoom();
+        }
+    });
+
+    function openZoom() {
+        const currentPageIndex = parseInt(document.getElementById('current-page').innerText);
+        zoomImg.src = `${folder}page_${currentPageIndex}.jpg`;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeZoom() {
+        modal.style.display = 'none';
+        currentScale = 1;
+        zoomWrapper.style.transform = `scale(${currentScale})`;
+    }
+
+    // Zoom interno no Modal via Scroll
+    modal.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.2 : 0.2;
+        currentScale = Math.min(Math.max(1, currentScale + delta), 4);
+        zoomWrapper.style.transform = `scale(${currentScale})`;
+    });
+
 </script>
 
 </body>
