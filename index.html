@@ -1,1 +1,70 @@
-# catalogo-digital
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Livro Digital</title>
+
+<script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
+
+<style>
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Arial;
+}
+
+#book {
+    width: 1000px;
+    height: 650px;
+}
+
+.page {
+    background: white;
+}
+
+.page img {
+    width: 100%;
+    height: 100%;
+}
+</style>
+</head>
+<body>
+
+<div id="book"></div>
+
+<script>
+
+const pageFlip = new St.PageFlip(
+    document.getElementById("book"),
+    {
+        width: 500,
+        height: 650,
+        size: "stretch",
+        minWidth: 300,
+        maxWidth: 1000,
+        minHeight: 400,
+        maxHeight: 1200,
+        showCover: true,
+        maxShadowOpacity: 0.5,
+        mobileScrollSupport: false
+    }
+);
+
+// GERADOR AUTOMÁTICO DE PÁGINAS
+const totalPages = 6; // <<< ALTERE PARA O TOTAL REAL
+
+let images = [];
+for (let i = 1; i <= totalPages; i++) {
+    images.push(`pages/page_${i}.jpg`);
+}
+
+pageFlip.loadFromImages(images);
+
+</script>
+
+</body>
+</html>
