@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Catálogo Digital</title>
 
     <script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
@@ -13,6 +13,7 @@
             padding: 0;
             background: #121212;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -22,15 +23,15 @@
 
         #book-wrapper {
             position: relative;
-            width: 95vw;
-            height: 85vh;
+            width: 100vw;
+            height: 70vh; /* Espaço para o livro */
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         #book {
-            box-shadow: 0 0 50px rgba(0,0,0,0.7);
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
         }
 
         .page img {
@@ -45,58 +46,78 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            padding: 20px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 25px 15px;
             cursor: pointer;
             font-size: 24px;
             z-index: 100;
-            transition: 0.3s;
             border-radius: 8px;
-        }
-
-        .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: #fff;
+            transition: 0.3s;
         }
 
         #prev-btn { left: 10px; }
         #next-btn { right: 10px; }
 
+        /* AJUSTES PARA CELULAR (Telas menores que 768px) */
+        @media (max-width: 768px) {
+            #book-wrapper {
+                height: 60vh; /* Ajusta altura no mobile */
+                width: 100%;
+            }
+
+            .nav-btn {
+                top: auto;
+                bottom: -80px; /* Move os botões para baixo do catálogo */
+                transform: none;
+                padding: 15px 30px;
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            #prev-btn { left: 20%; }
+            #next-btn { right: 20%; }
+            
+            body {
+                overflow: auto; /* Permite rolagem se o conteúdo extravasar verticalmente */
+            }
+        }
     </style>
 </head>
 <body>
 
 <div id="book-wrapper">
-    <button id="prev-btn" class="nav-btn">&#10094;</button>
+    <button id="prev-btn" class="nav-btn" aria-label="Anterior">&#10094;</button>
     
     <div id="book"></div>
     
-    <button id="next-btn" class="nav-btn">&#10095;</button>
+    <button id="next-btn" class="nav-btn" aria-label="Próximo">&#10095;</button>
 </div>
 
 <script>
+    // Detecta se é dispositivo móvel para ajustar proporção inicial
+    const isMobile = window.innerWidth <= 768;
+
     const pageFlip = new St.PageFlip(
         document.getElementById("book"),
         {
-            width: 1280, // Proporção da sua imagem
+            width: 1280, 
             height: 720, 
 
             size: "stretch",
-            minWidth: 320,
+            minWidth: 200,
             maxWidth: 2000,
-            minHeight: 180,
-            maxHeight: 1200,
+            minHeight: 120,
+            maxHeight: 1500,
 
-            // AQUI ESTÁ O SEGREDO PARA PÁGINA ÚNICA
-            mode: "portrait",           // Força o modo 'retrato' (uma folha)
-            usePortrait: true,          // Trava para não mudar para 'double' em telas largas
-            showCover: false,           // Remove o comportamento de espelhamento da capa
+            mode: "portrait",           
+            usePortrait: true,          
+            showCover: false,           
             
             clickEventForward: true,
             maxShadowOpacity: 0.5,
-            mobileScrollSupport: true
+            mobileScrollSupport: true,
+            swipeDistance: 30, // Facilita o deslize no touch
         }
     );
 
@@ -117,6 +138,7 @@
         pageFlip.flipNext();
     });
 
+    // Atualização inteligente no redimensionamento
     window.addEventListener('resize', () => {
         pageFlip.update();
     });
