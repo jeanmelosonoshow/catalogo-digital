@@ -2,13 +2,17 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Catálogo Profissional Estofados</title>
     
     <script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
 
     <style>
         :root { --bg-color: #121212; }
+        
+        /* Reset básico para evitar scrolls fantasmas */
+        * { touch-action: manipulation; box-sizing: border-box; }
+
         body {
             margin: 0; padding: 0; background: var(--bg-color);
             font-family: sans-serif; overflow: hidden;
@@ -33,34 +37,50 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4); font-size: 24px;
         }
 
-        /* Modal de Zoom */
+        /* Modal de Zoom - Otimizado para Mobile */
         #zoom-modal {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: rgba(0,0,0,0.98);
             z-index: 2000; justify-content: center; align-items: center;
+            overflow: hidden; /* Evita que o modal role a página principal */
         }
 
-        #zoom-modal img { max-width: 95%; max-height: 85%; object-fit: contain; }
+        /* Garantimos que a imagem nunca seja maior que a tela */
+        #zoom-img { 
+            max-width: 90%; 
+            max-height: 80%; 
+            object-fit: contain; 
+            pointer-events: auto;
+            border-radius: 4px;
+        }
 
         .zoom-nav {
             position: absolute; top: 50%; transform: translateY(-50%);
-            background: rgba(255,255,255,0.2); color: white; border: none;
-            padding: 20px; cursor: pointer; font-size: 24px; border-radius: 5px;
+            background: rgba(255,255,255,0.1); color: white; border: none;
+            padding: 15px 10px; cursor: pointer; font-size: 24px; border-radius: 5px;
+            z-index: 2100;
         }
-        #zoom-prev { left: 10px; }
-        #zoom-next { right: 10px; }
+        #zoom-prev { left: 5px; }
+        #zoom-next { right: 5px; }
 
         #close-zoom {
-            position: absolute; top: 20px; right: 20px;
+            position: absolute; top: 15px; right: 15px;
             width: 45px; height: 45px; background: #fff; color: #000;
             border-radius: 50%; display: flex; justify-content: center;
             align-items: center; font-size: 24px; cursor: pointer; font-weight: bold;
+            z-index: 2200;
         }
 
         #controls {
             margin-top: 15px; color: white;
             background: rgba(255, 255, 255, 0.1);
             padding: 10px 25px; border-radius: 30px; font-size: 14px;
+        }
+
+        /* Esconder setas no mobile para não poluir a tela, o usuário pode clicar nos cantos */
+        @media (max-width: 768px) {
+            .zoom-nav { padding: 20px 5px; background: transparent; }
+            #book-container { height: 70vh; }
         }
     </style>
 </head>
@@ -76,7 +96,7 @@
     Página: <span id="current-page">1</span> / 6
 </div>
 
-<div id="zoom-modal">
+<div id="zoom-modal" onclick="handleOutsideClick(event)">
     <div id="close-zoom" onclick="closeZoom()">×</div>
     <button id="zoom-prev" class="zoom-nav" onclick="changeZoomPage(-1)">&#10094;</button>
     <img id="zoom-img" src="">
@@ -100,7 +120,7 @@
     }
 
     window.onload = () => {
-        // CORREÇÃO MOBILE: Usar a largura real do dispositivo para evitar o modo "duo"
+        // CORREÇÃO: Se for mobile, a largura é exatamente a tela, se desktop, limitamos.
         const bookWidth = isMobile ? window.innerWidth : 550;
         const bookHeight = isMobile ? window.innerHeight * 0.7 : 750;
 
@@ -113,10 +133,11 @@
             minHeight: 400,
             maxHeight: 1500,
             showCover: false,
-            usePortrait: true, // Força modo retrato (uma página)
+            usePortrait: true, 
             drawShadow: true,
             mobileScrollSupport: true,
-            clickEventForward: false
+            clickEventForward: false,
+            swipeDistance: 30 // Sensibilidade do deslize
         });
 
         pageFlip.loadFromHTML(document.querySelectorAll(".page"));
@@ -126,15 +147,18 @@
         });
     };
 
-    // 2. Lógica do Zoom Inteligente
+    // 2. Lógica do Zoom
     function openZoom() {
-        // Pega a página exata em que o livro está no momento do clique
         zoomIdx = pageFlip.getCurrentPageIndex() + 1;
         updateZoomImage();
         document.getElementById('zoom-modal').style.display = 'flex';
+        // Impede scroll no fundo
+        document.body.style.overflow = 'hidden';
     }
 
     function changeZoomPage(step) {
+        // Evita que o clique na seta feche o modal
+        event.stopPropagation();
         zoomIdx += step;
         if (zoomIdx < 1) zoomIdx = totalPages;
         if (zoomIdx > totalPages) zoomIdx = 1;
@@ -147,8 +171,15 @@
 
     function closeZoom() {
         document.getElementById('zoom-modal').style.display = 'none';
-        // Sincroniza o livro com a página que o utilizador parou no zoom
+        document.body.style.overflow = 'auto';
         pageFlip.flip(zoomIdx - 1);
+    }
+
+    // Fecha o modal se clicar na parte preta (fundo)
+    function handleOutsideClick(event) {
+        if (event.target.id === "zoom-modal") {
+            closeZoom();
+        }
     }
 
     window.addEventListener('resize', () => {
