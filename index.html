@@ -37,6 +37,23 @@
             #next-btn { right: 15%; }
             #book-wrapper { height: 75vh; }
         }
+
+        @media (max-width: 768px) {
+    #book-wrapper {
+        height: 85vh; /* Aumentamos o espaço vertical */
+        width: 100vw;
+        padding: 0;
+    }
+    
+    #book {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .nav-btn {
+        bottom: -50px; /* Garante que os botões não fiquem em cima da imagem */
+    }
+}
     </style>
 </head>
 <body>
