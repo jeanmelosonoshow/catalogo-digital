@@ -19,12 +19,22 @@
 
         .swiper {
             width: 100vw;
-            height: 90vh; /* Espaço para os botões embaixo se necessário */
+            height: 100vh;
         }
 
         .swiper-slide {
             display: flex; justify-content: center; align-items: center;
             background: var(--bg-color);
+            overflow: hidden; /* Importante para o zoom */
+        }
+
+        /* Container do Zoom */
+        .swiper-zoom-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .swiper-slide img {
@@ -34,29 +44,41 @@
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
-        /* Customizando Setas */
+        /* Setas de Navegação (Desktop) */
         .swiper-button-next, .swiper-button-prev {
             color: #fff;
             background: rgba(255,255,255,0.1);
-            padding: 30px 20px;
-            border-radius: 8px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .swiper-button-next:after, .swiper-button-prev:after { font-size: 20px; }
+
+        /* Barra de Progresso */
+        .swiper-pagination-progressbar {
+            background: rgba(255,255,255,0.1);
+            top: 0 !important;
+        }
+        .swiper-pagination-progressbar-fill {
+            background: #fff !important;
         }
 
         @media (max-width: 768px) {
-            .swiper-button-next, .swiper-button-prev { display: none; } /* Esconde setas no mobile (usa o dedo) */
-            .swiper { height: 100vh; }
+            .swiper-button-next, .swiper-button-prev { display: none; } /* Navegação por toque no mobile */
         }
     </style>
 </head>
 <body>
 
     <div class="swiper">
+        <div class="swiper-pagination"></div>
+
         <div class="swiper-wrapper" id="swiper-container">
             </div>
         
         <div class="swiper-button-next"></div>
         <div class="swiper-button-prev"></div>
-        <div class="swiper-pagination"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
@@ -67,39 +89,47 @@
         const folder = isMobile ? 'pages/mobile/' : 'pages/';
         const container = document.getElementById('swiper-container');
 
-        // 1. Gera os Slides
+        // Criação dos slides com container de ZOOM
         for (let i = 1; i <= totalPages; i++) {
             const slide = document.createElement('div');
             slide.className = 'swiper-slide';
-            slide.innerHTML = `<img src="${folder}page_${i}.jpg" alt="Página ${i}">`;
+            slide.innerHTML = `
+                <div class="swiper-zoom-container">
+                    <img src="${folder}page_${i}.jpg" alt="Página ${i}">
+                </div>
+            `;
             container.appendChild(slide);
         }
 
-        // 2. Inicializa o Swiper com efeito de "Flip" ou "Slide"
+        // Inicialização do Swiper
         const swiper = new Swiper('.swiper', {
             loop: false,
+            effect: 'flip', // Efeito de virar a página
             grabCursor: true,
-            effect: 'creative', // Efeito moderno de transição
-            creativeEffect: {
-                prev: { shadow: true, translate: [0, 0, -400] },
-                next: { translate: ['100%', 0, 0] },
+            zoom: {
+                maxRatio: 3, // Permite zoom de até 3x
+                minRatio: 1,
+                toggle: true, // Zoom ao dar duplo clique
             },
             pagination: {
                 el: '.swiper-pagination',
-                type: 'progressbar', // Barra de progresso no topo é ótima para catálogos
+                type: 'progressbar',
             },
             navigation: {
                 nextEl: '.swiper-button-next',
                 prevEl: '.swiper-button-prev',
             },
-            // Ativa o teclado
-            keyboard: { enabled: true },
+            keyboard: {
+                enabled: true,
+            },
         });
 
-        // Recarrega se mudar o tipo de dispositivo
+        // Recarrega se houver mudança de dispositivo (Redimensionamento)
         window.addEventListener('resize', () => {
             const checkMobile = window.innerWidth <= 768;
-            if (checkMobile !== isMobile) location.reload();
+            if (checkMobile !== isMobile) {
+                location.reload();
+            }
         });
     </script>
 </body>
