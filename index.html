@@ -3,77 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Catálogo Digital</title>
+    <title>Catálogo Digital Estofados</title>
+    
     <script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
+
     <style>
-        body { margin: 0; background: #121212; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; font-family: sans-serif; }
-        
-        #book-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
-
-        /* Aviso de rotação apenas para mobile em modo retrato */
-        #rotation-warning {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #1a1a1a; color: white; z-index: 9999;
-            flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        body {
+            margin: 0;
+            padding: 0;
+            background: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: sans-serif;
         }
 
-        @media (max-width: 768px) and (orientation: portrait) {
-            #rotation-warning { display: flex; }
-            #book-wrapper { display: none; }
+        #book-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
+        /* Botões de Navegação */
         .nav-btn {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            background: rgba(255,255,255,0.1); color: white; border: none;
-            padding: 15px; cursor: pointer; z-index: 100; border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px 15px;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 100;
+            border-radius: 8px;
+            transition: 0.3s;
+            user-select: none;
         }
-        #prev-btn { left: 10px; }
-        #next-btn { right: 10px; }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #prev-btn { left: 15px; }
+        #next-btn { right: 15px; }
+
+        /* Estilo das Páginas */
+        .page img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            background: #121212;
+            display: block;
+        }
+
+        /* Ajustes Específicos para Telemóvel */
+        @media (max-width: 768px) {
+            .nav-btn {
+                padding: 12px 18px;
+                font-size: 18px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                bottom: 30px; /* Posiciona no rodapé para não tapar a imagem */
+                top: auto;
+                transform: none;
+            }
+            #prev-btn { left: 25%; }
+            #next-btn { right: 25%; }
+        }
     </style>
 </head>
 <body>
 
-<div id="rotation-warning">
-    <p style="font-size: 20px;">🔄</p>
-    <p>Por favor, <b>gire o seu celular</b><br>para visualizar o catálogo com clareza.</p>
-</div>
-
 <div id="book-wrapper">
-    <button id="prev-btn" class="nav-btn">&#10094;</button>
+    <button id="prev-btn" class="nav-btn" title="Anterior">&#10094;</button>
+    
     <div id="book"></div>
-    <button id="next-btn" class="nav-btn">&#10095;</button>
+    
+    <button id="next-btn" class="nav-btn" title="Próximo">&#10095;</button>
 </div>
 
 <script>
+    // 1. Deteta o tipo de dispositivo
     const isMobile = window.innerWidth <= 768;
-    
-    // Configuramos para ocupar a tela inteira disponível
-    const pageFlip = new St.PageFlip(document.getElementById("book"), {
-        width: 1280, 
-        height: 720,
-        size: "stretch",
-        mode: "portrait",
-        usePortrait: true,
-        showCover: false,
-        mobileScrollSupport: true,
-        maxShadowOpacity: 0.5
-    });
 
-    const totalPages = 6;
+    // 2. Define dimensões (Desktop: 16:9 | Mobile: 9:16)
+    // Estas medidas devem bater com as imagens geradas pelo Python
+    const dimensions = isMobile 
+        ? { w: 1080, h: 1920 } 
+        : { w: 1280, h: 720 };
+
+    const pageFlip = new St.PageFlip(
+        document.getElementById("book"),
+        {
+            width: dimensions.w,
+            height: dimensions.h,
+            size: "stretch",
+            mode: "portrait",           
+            usePortrait: true,          
+            showCover: false,           
+            mobileScrollSupport: true,
+            maxShadowOpacity: 0.4,
+            clickEventForward: true,
+            flippingTime: 800
+        }
+    );
+
+    // 3. Configura o caminho das imagens (Usa a pasta /mobile se for telemóvel)
+    const totalPages = 6; 
+    const folder = isMobile ? 'pages/mobile/' : 'pages/';
     let images = [];
+
     for (let i = 1; i <= totalPages; i++) {
-        images.push(`pages/page_${i}.jpg`);
+        images.push(`${folder}page_${i}.jpg`);
     }
 
+    // Carrega as imagens na biblioteca
     pageFlip.loadFromImages(images);
 
+    // Controlos de navegação
     document.getElementById('prev-btn').onclick = () => pageFlip.flipPrev();
     document.getElementById('next-btn').onclick = () => pageFlip.flipNext();
 
-    // Recarrega ao girar para ajustar o tamanho
-    window.addEventListener('orientationchange', () => {
-        setTimeout(() => location.reload(), 200);
+    // 4. Se o utilizador mudar o tamanho da janela ou rodar o ecrã, recarrega o site
+    window.addEventListener('resize', () => {
+        const checkMobile = window.innerWidth <= 768;
+        if (checkMobile !== isMobile) {
+            location.reload(); 
+        } else {
+            pageFlip.update();
+        }
     });
 </script>
+
 </body>
 </html>
