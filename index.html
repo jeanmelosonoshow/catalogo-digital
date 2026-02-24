@@ -3,135 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Catálogo Digital - Página Única</title>
+    <title>Catálogo Digital Estofados</title>
     
-    <script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
     <style>
+        :root { --bg-color: #121212; }
+        
         body {
-            margin: 0;
-            padding: 0;
-            background: #121212;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 0; padding: 0; background: var(--bg-color);
+            font-family: sans-serif; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
             min-height: 100vh;
-            overflow: hidden;
-            font-family: sans-serif;
         }
 
-        #book-wrapper {
-            position: relative;
+        .swiper {
             width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 90vh; /* Espaço para os botões embaixo se necessário */
         }
 
-        /* Botões de Navegação */
-        .nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 20px 15px;
-            cursor: pointer;
-            font-size: 24px;
-            z-index: 100;
+        .swiper-slide {
+            display: flex; justify-content: center; align-items: center;
+            background: var(--bg-color);
+        }
+
+        .swiper-slide img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        /* Customizando Setas */
+        .swiper-button-next, .swiper-button-prev {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+            padding: 30px 20px;
             border-radius: 8px;
-            transition: 0.3s;
-            user-select: none;
         }
 
-        .nav-btn:hover { background: rgba(255, 255, 255, 0.3); }
-        #prev-btn { left: 15px; }
-        #next-btn { right: 15px; }
-
-        .page img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; 
-            background: #121212;
-            display: block;
-        }
-
-        /* Ajustes para Mobile */
         @media (max-width: 768px) {
-            .nav-btn {
-                top: auto;
-                bottom: 30px;
-                transform: none;
-                padding: 12px 20px;
-                border-radius: 50%;
-            }
-            #prev-btn { left: 20%; }
-            #next-btn { right: 20%; }
+            .swiper-button-next, .swiper-button-prev { display: none; } /* Esconde setas no mobile (usa o dedo) */
+            .swiper { height: 100vh; }
         }
     </style>
 </head>
 <body>
 
-<div id="book-wrapper">
-    <button id="prev-btn" class="nav-btn">&#10094;</button>
-    <div id="book"></div>
-    <button id="next-btn" class="nav-btn">&#10095;</button>
-</div>
+    <div class="swiper">
+        <div class="swiper-wrapper" id="swiper-container">
+            </div>
+        
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-pagination"></div>
+    </div>
 
-<script>
-    const isMobile = window.innerWidth <= 768;
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-    // Dimensões baseadas no que você gerou no Python (9:16 para mobile, 16:9 para desktop)
-    const dimensions = isMobile 
-        ? { w: 1080, h: 1920 } 
-        : { w: 1280, h: 720 };
+    <script>
+        const isMobile = window.innerWidth <= 768;
+        const totalPages = 6;
+        const folder = isMobile ? 'pages/mobile/' : 'pages/';
+        const container = document.getElementById('swiper-container');
 
-    const pageFlip = new St.PageFlip(
-        document.getElementById("book"),
-        {
-            width: dimensions.w,
-            height: dimensions.h,
-            size: "stretch",
-            
-            // CONFIGURAÇÕES PARA EXIBIR APENAS UMA PÁGINA
-            mode: "portrait",           // Força modo uma página
-            usePortrait: true,          // Impede de mudar para página dupla
-            showCover: false,           // Trata todas as páginas como iguais (uma a uma)
-            
-            mobileScrollSupport: true,
-            maxShadowOpacity: 0.5,
-            clickEventForward: true,
-            flippingTime: 800
+        // 1. Gera os Slides
+        for (let i = 1; i <= totalPages; i++) {
+            const slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.innerHTML = `<img src="${folder}page_${i}.jpg" alt="Página ${i}">`;
+            container.appendChild(slide);
         }
-    );
 
-    // Carregamento de imagens das pastas Desktop ou Mobile
-    const totalPages = 6; 
-    const folder = isMobile ? 'pages/mobile/' : 'pages/';
-    let images = [];
+        // 2. Inicializa o Swiper com efeito de "Flip" ou "Slide"
+        const swiper = new Swiper('.swiper', {
+            loop: false,
+            grabCursor: true,
+            effect: 'creative', // Efeito moderno de transição
+            creativeEffect: {
+                prev: { shadow: true, translate: [0, 0, -400] },
+                next: { translate: ['100%', 0, 0] },
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                type: 'progressbar', // Barra de progresso no topo é ótima para catálogos
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            // Ativa o teclado
+            keyboard: { enabled: true },
+        });
 
-    for (let i = 1; i <= totalPages; i++) {
-        images.push(`${folder}page_${i}.jpg`);
-    }
-
-    pageFlip.loadFromImages(images);
-
-    // Navegação pelos botões
-    document.getElementById('prev-btn').onclick = () => pageFlip.flipPrev();
-    document.getElementById('next-btn').onclick = () => pageFlip.flipNext();
-
-    // Recarregar se mudar o tamanho da tela (para trocar as pastas de imagem)
-    window.addEventListener('resize', () => {
-        const checkMobile = window.innerWidth <= 768;
-        if (checkMobile !== isMobile) {
-            location.reload(); 
-        } else {
-            pageFlip.update();
-        }
-    });
-</script>
-
+        // Recarrega se mudar o tipo de dispositivo
+        window.addEventListener('resize', () => {
+            const checkMobile = window.innerWidth <= 768;
+            if (checkMobile !== isMobile) location.reload();
+        });
+    </script>
 </body>
 </html>
